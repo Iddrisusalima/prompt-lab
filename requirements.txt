@@ -1,0 +1,5 @@
+google-genai==2.22.0
+python-dotenv==1.2.3
+# httpx ships with google-genai, but chat.py imports it directly to catch
+# network errors, so it is pinned explicitly rather than relied on by accident.
+httpx==0.28.1
