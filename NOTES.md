@@ -559,6 +559,54 @@ which teaches nothing.
 **A catch-all `except Exception` sits last.** Specific handlers come first, but
 the tool should never hard-crash on something I failed to anticipate.
 
+## A bug I found by using my own tool
+
+While testing interactively I pressed **Ctrl+V** to paste a message. In a Windows
+console that does not paste — it inserts a literal `\x16` control character. The
+terminal showed `^V`, and the bot kept replying "It looks like your message came
+through empty, Salima!"
+
+The real problem was that `\x16` is not whitespace, so `.strip()` left it alone
+and my code treated the input as valid. Every accidental paste therefore sent a
+meaningless request to Google **and paid for it**, dragging the whole history
+along for nothing.
+
+Fix: filter out non-printable characters before checking whether the input is
+empty, and if it is, explain why and skip the API call entirely.
+
+```python
+user_input = "".join(ch for ch in raw if ch.isprintable() or ch == "\t").strip()
+```
+
+The tool now says the input was empty, points out that Ctrl+V does not paste in a
+Windows console, and confirms nothing was sent so it cost nothing. Rejected input
+does not increment the turn counter either.
+
+**To paste in a Windows terminal, right-click instead of pressing Ctrl+V.**
+
+## Real cost data from that accidental long session
+
+Because the blank messages kept the conversation going, I ended up with an
+18-turn session — a much better illustration of the cost curve than my earlier
+short tests:
+
+| Turn | Messages in history | Tokens sent | Session total |
+| --- | --- | --- | --- |
+| 1 | 2 | ~30 | ~$0.00007 |
+| 16 | 32 | 596 | $0.002724 (5,223 tokens) |
+| 17 | 34 | 628 | $0.002970 (5,874 tokens) |
+| 18 | 36 | 654 | $0.003234 (6,555 tokens) |
+
+Input tokens per request grew roughly **20x**, from about 30 to 654, purely from
+accumulated history. My messages never got longer. By turn 18 each individual
+reply cost about 4x what turn 1 cost, and the replies themselves were getting
+*shorter* (27 output tokens).
+
+This is the cost curve made concrete: the growth is in the input, it is caused by
+memory, and it never levels off on its own. It is also a practical argument for
+the `/reset` command — clearing history is not just tidiness, it is the brake on
+a bill that otherwise only climbs.
+
 ---
 
 # Day 6 (Sat Sep 12) — Stretch Goals (optional)

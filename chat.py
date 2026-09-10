@@ -230,7 +230,14 @@ print(f"{C.BLUE}{'=' * 66}{C.RESET}")
 
 while True:
     try:
-        user_input = input(f"\n{C.BOLD}{C.GREEN}You:{C.RESET} ").strip()
+        raw = input(f"\n{C.BOLD}{C.GREEN}You:{C.RESET} ")
+        # Strip control characters before whitespace. On Windows, pressing
+        # Ctrl+V in a console does not paste -- it inserts a literal \x16
+        # control character. Without this, such input looks non-empty to
+        # Python but arrives at the model as nothing, so we would pay for a
+        # request that says nothing. Filter those out and treat as empty.
+        user_input = "".join(ch for ch in raw if ch.isprintable() or ch == "\t")
+        user_input = user_input.strip()
     except (EOFError, KeyboardInterrupt):
         # EOFError: piped input ran out. KeyboardInterrupt: user pressed Ctrl+C.
         print(f"\n{C.DIM}Interrupted.{C.RESET}")
@@ -242,6 +249,16 @@ while True:
         print(user_input)
 
     if not user_input:
+        # Say why, instead of silently looping. If the user pressed Ctrl+V
+        # expecting a paste, they need to know it did not work.
+        if raw.strip():
+            print(
+                f"  {C.YELLOW}That input was empty once control characters were "
+                f"removed.{C.RESET}\n"
+                f"  {C.DIM}Ctrl+V does not paste in a Windows console. "
+                f"Right-click to paste, or just type.{C.RESET}\n"
+                f"  {C.DIM}Nothing was sent, so this cost you nothing.{C.RESET}"
+            )
         continue
 
     lowered = user_input.lower()
