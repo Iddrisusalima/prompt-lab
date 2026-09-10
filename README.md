@@ -73,12 +73,33 @@ session to fix your console's encoding:
 
 ## Usage
 
+### Commands (while chatting)
+
 | Command | What it does |
 | --- | --- |
 | `/reset` | Clears the conversation history. Cost totals are kept, since those tokens were already spent. |
 | `/stats` | Shows the running session totals. |
+| `/persona` | Lists personas, or switch with `/persona pirate`. |
+| `/stream` | Toggles word-by-word streaming. |
 | `/help` | Lists the commands. |
 | `exit` | Quits and prints the final bill. |
+
+### Command line flags
+
+| Flag | What it does |
+| --- | --- |
+| `--model NAME` | Pick a model, overriding `.env`. e.g. `--model gemini-3.6-flash` |
+| `--persona NAME` | Start with a persona. One of `tutor`, `pirate`, `teacher`, `terse`, `rubberduck` |
+| `--no-stream` | Wait for the whole reply instead of streaming it |
+| `--list-models` | List models your key can use, then exit |
+
+```powershell
+.\venv\Scripts\python.exe chat.py --persona pirate --model gemini-3.6-flash
+```
+
+Note that `--list-models` is optimistic: some models it lists still fail when
+called, because they are retired for new accounts. The only real test is calling
+one, and the tool reports that failure clearly if it happens.
 
 ### Example session
 
@@ -261,11 +282,31 @@ next request.
 
 ## Stretch goals
 
-Not yet attempted:
+All three completed:
 
-- [ ] Streaming, so replies appear word by word
-- [ ] A `--model` flag to switch models from the command line
-- [ ] A persona library to switch between system prompts
+- [x] **Streaming** — replies print word by word as they arrive. Toggle with
+      `/stream` or start with `--no-stream`. Token usage still comes back intact,
+      it just arrives on the final chunk. Streaming changes perceived speed, not
+      cost.
+- [x] **`--model` flag** — switch models from the command line, overriding `.env`.
+      Plus `--list-models` to see what your key can reach.
+- [x] **Persona library** — five system prompts (`tutor`, `pirate`, `teacher`,
+      `terse`, `rubberduck`), switchable mid-conversation with `/persona`.
+
+The persona library produced the most interesting result in the project. Asking
+`What is 15 + 27?` under three personas gave an **87x spread in output tokens**:
+
+| Persona | Reply | Output tokens | Cost |
+| --- | --- | --- | --- |
+| `pirate` | A tobacco-spitting rant, then concedes **42** | 175 | $0.000450 |
+| `teacher` | Refuses to answer, asks a guiding question instead | 55 | $0.000206 |
+| `terse` | `42` | 2 | $0.000093 |
+
+Better still, after switching from `pirate` to `teacher`, the teacher opened with
+*"Put that cutlass away this instant."* No cutlass had been mentioned to the
+teacher — the pirate had brought one up two turns earlier. Switching persona
+replaces the system instruction but keeps the history, so that one line
+demonstrates the two channels are genuinely separate.
 
 Extras I added that were not required:
 

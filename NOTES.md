@@ -669,11 +669,110 @@ demonstrates.
 
 ---
 
-# Day 6 (Sat Sep 12) — Stretch Goals (optional)
+# Day 6 (Sat Sep 12) — Stretch Goals
 
-- [ ] Streaming, so replies appear word by word
-- [ ] A `--model` flag to switch models from the command line
-- [ ] A small persona library of system prompts to switch between
+**Status: all three complete.**
+
+- [x] Streaming, so replies appear word by word
+- [x] A `--model` flag to switch models from the command line
+- [x] A small persona library of system prompts to switch between
+
+## 1. Streaming
+
+Used `client.models.generate_content_stream(...)` instead of
+`generate_content(...)`, printing each chunk the moment it arrives with
+`print(chunk.text, end="", flush=True)`.
+
+The thing I had to check first: **does streaming break cost tracking?** It does
+not. The usage numbers still come back, they just arrive on the **final chunk**
+rather than all at once, so I keep the last one I am given:
+
+```python
+for chunk in client.models.generate_content_stream(...):
+    if chunk.text:
+        print(chunk.text, end="", flush=True)
+    if chunk.usage_metadata:
+        usage = chunk.usage_metadata   # only the final chunk carries it
+```
+
+A test prompt came back in **18 chunks** with usage intact (13 in, 374 out, 387
+total).
+
+Worth being clear about what streaming does and does not change: it does **not**
+make anything cheaper, and it does not make the model faster. The model produces
+tokens one at a time either way. Streaming only stops me waiting for the whole
+reply before seeing any of it. It is a perceived-speed change, not a cost change,
+which is why the tool says exactly that when you toggle it.
+
+Toggle with `/stream`, or start with it off using `--no-stream`.
+
+## 2. Command line flags
+
+Used `argparse`. Flags override `.env`, so `.env` holds my defaults and the flags
+are for one-off experiments.
+
+```
+--model NAME      pick a model, e.g. --model gemini-3.6-flash
+--persona NAME    start with a persona, e.g. --persona pirate
+--no-stream       wait for the full reply instead of streaming
+--list-models     show models my key can use, then exit
+```
+
+`--list-models` also marks which models I have no pricing on file for, and
+repeats the warning that the list is optimistic. That warning earned itself:
+**`gemini-2.5-flash-lite` appears in the list but returns 404 when called**,
+retired for new accounts exactly like `gemini-2.5-flash` was on Day 1. My error
+handler caught it cleanly and pointed me at `--list-models`.
+
+## 3. Persona library
+
+Five system prompts in a dict: `tutor`, `pirate`, `teacher`, `terse`,
+`rubberduck`. `/persona` lists them with the current one starred, and
+`/persona NAME` switches.
+
+### The experiment: identical question, three personas
+
+I asked `What is 15 + 27?` three times in one session, switching persona between
+each.
+
+| Persona | Reply | In | Out | Cost |
+| --- | --- | --- | --- | --- |
+| `pirate` | Spat tobacco on the deck, invoked Blackbeard's rotting ghost, called me a lazy barnacle, scratched the sum in the grime with a cutlass, then conceded **42** | 40 | 175 | $0.000450 |
+| `teacher` | "We do not just blurt out answers here." Asked me to break 27 into tens and ones. Never said 42. | 229 | 55 | $0.000206 |
+| `terse` | `42` | 292 | 2 | $0.000093 |
+
+**An 87x difference in output tokens for the same question.** The pirate cost
+about 5x what the terse persona cost. Personality is a line item.
+
+### The accidental best moment
+
+After switching from `pirate` to `teacher`, the teacher opened with:
+
+> "Put that cutlass away this instant and sit up straight!"
+
+I had never mentioned a cutlass. The *pirate* had, two turns earlier. Switching
+persona changes the system instruction but **keeps the history**, so the new
+persona could see everything the old one had said and reacted to it in character.
+
+That accidentally demonstrates the whole architecture in one line: the system
+instruction and the conversation history are two separate channels. I swapped one
+and left the other, and the reply proved both were present.
+
+## Also added
+
+`/stats` now breaks the bill down by direction and states what share of tokens
+were input:
+
+```
+    input tokens    :     561   $0.000168
+    output tokens   :     232   $0.000580
+    total tokens    :     793
+    estimated cost  : $0.000748  (free tier: actually $0.00)
+    71% of those tokens were input -- that is the cost of memory.
+```
+
+That last line is the lesson of the whole project, printed automatically every
+time.
 
 ---
 
