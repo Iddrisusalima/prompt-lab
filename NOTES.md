@@ -607,6 +607,66 @@ memory, and it never levels off on its own. It is also a practical argument for
 the `/reset` command — clearing history is not just tidiness, it is the brake on
 a bill that otherwise only climbs.
 
+## The clearest evidence in the whole project
+
+Continuing that long session, I asked the same question either side of a `/reset`.
+This is the transcript I will use in my demo video, because the contrast is
+starker than any short test:
+
+```
+You: what is a token
+Bot: In AI, a token is a chunk of text—usually a word or part of a word—that
+     language models use to process and generate language.
+  [turn 19]  history: 38 msgs  |  tokens  in: 687  out: 6   total: 693
+  this turn: $0.000221   session so far: $0.003455  (7,248 tokens)
+
+You: what is a context window
+Bot: A context window is the maximum amount of text—measured in tokens—that an
+     AI model can read, remember, and process at one time. If your conversation
+     gets longer than this window, the AI will start forgetting the earliest
+     parts of the chat!
+  [turn 20]  history: 40 msgs  |  tokens  in: 699  out: 60  total: 759
+  this turn: $0.000360   session so far: $0.003814  (8,007 tokens)
+
+You: what is my name
+Bot: Your name is Salima!
+  [turn 22]  history: 44 msgs  |  tokens  in: 822  out: 6   total: 828
+  this turn: $0.000262   session so far: $0.004431  (9,651 tokens)
+
+You: /reset
+History cleared. Dropped 44 messages. The bot no longer knows anything we discussed.
+Session cost totals are kept -- those tokens were already spent.
+
+You: what is my name
+Bot: I don't have access to your personal information, so I don't know your name
+     yet! What should I call you?
+  [turn 23]  history: 2 msgs   |  tokens  in: 29   out: 27  total: 56
+  this turn: $0.000076   session so far: $0.004507  (9,707 tokens)
+```
+
+### Why this is the proof
+
+The same four words, `what is my name`, asked seconds apart. First time it knew.
+Second time it did not. Nothing about the model changed between those two
+requests — I deleted a Python list on my own laptop, and the "memory" went with
+it. That is as direct a demonstration as I can give that the model is stateless
+and the memory was never inside it.
+
+And the price tag: **input tokens fell from 822 to 29, a 28x drop.** The 822 was
+not my question, my question was four words. The 822 was 44 messages of history
+being re-sent so the model could appear to remember. That is exactly what memory
+costs, stated as a number.
+
+Session total for the whole conversation: 9,707 tokens, $0.004507 at paid rates
+(and $0.00 actual, on the free tier).
+
+### A nice accident
+
+On turn 20 the bot correctly explained context windows as text measured in tokens
+that the model can process at once, adding that once a conversation outgrows the
+window the earliest parts get forgotten. My tool explained the concept my tool
+demonstrates.
+
 ---
 
 # Day 6 (Sat Sep 12) — Stretch Goals (optional)
