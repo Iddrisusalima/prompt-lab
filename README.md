@@ -19,7 +19,7 @@ Built as Project 1 of an AI engineering mentorship.
 **1. Clone and enter the project**
 
 ```bash
-git clone https://github.com/<your-username>/prompt-lab.git
+git clone https://github.com/Iddrisusalima/prompt-lab.git
 cd prompt-lab
 ```
 
@@ -105,8 +105,8 @@ one, and the tool reports that failure clearly if it happens.
 
 ```
 ==================================================================
-  Prompt Lab  |  model: gemini-3.5-flash-lite
-  /reset  /stats  /help  exit
+  Prompt Lab  |  model: gemini-3.5-flash-lite  |  persona: tutor  |  streaming: on
+  /reset  /stats  /persona  /stream  /help  exit
 ==================================================================
 
 You: My name is Salima.
