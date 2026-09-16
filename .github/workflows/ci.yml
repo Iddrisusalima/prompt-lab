@@ -1,0 +1,59 @@
+name: CI
+
+# Runs on every push and pull request. Deliberately does NOT call the Gemini API,
+# because that would need a secret key and would cost money on a paid tier. This
+# checks that the code is valid and importable, which is what CI can honestly
+# verify without credentials.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Check every script compiles
+        run: python -m compileall -q chat.py day1_hello.py day2_roles.py
+
+      - name: Check the CLI loads and its flags parse
+        # --help exercises argparse and every module-level import without
+        # making a single API call.
+        run: python chat.py --help
+
+      - name: Check missing-key handling exits cleanly
+        # With no .env and no GEMINI_API_KEY, the tool must exit 1 with a helpful
+        # message rather than raising a traceback.
+        run: |
+          set +e
+          output=$(python chat.py 2>&1 </dev/null)
+          code=$?
+          set -e
+          echo "$output"
+          if [ "$code" -ne 1 ]; then
+            echo "Expected exit code 1, got $code"
+            exit 1
+          fi
+          echo "$output" | grep -q "No API key found" || {
+            echo "Expected a 'No API key found' message"
+            exit 1
+          }
+          echo "Missing-key handling behaved correctly."
