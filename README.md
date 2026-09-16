@@ -437,6 +437,16 @@ python chat.py --help
 
 ### Manual failure injection
 
+Forcing an invalid key, to confirm the tool explains itself rather than crashing:
+
+![Invalid API key producing a clear HTTP 401 message, with session totals showing zero turns and zero messages in history](docs/screenshots/error-handling.png)
+
+Two things to notice beyond the error message itself. The tool **keeps running**
+after the failure rather than exiting. And the session totals report
+`turns completed: 0` with `messages in history: 0` — the user message was rolled
+back out of history by `history.pop()`, so the failed request left no trace that
+could corrupt the next one.
+
 | Failure | How it was forced | Behaviour |
 | --- | --- | --- |
 | Missing API key | Ran with no `.env` present | Plain-English fix instructions, exit code 1, no traceback |
