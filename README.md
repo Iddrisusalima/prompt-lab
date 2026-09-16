@@ -20,7 +20,7 @@ Built as Project 1 of an AI engineering mentorship.
 
 ## Demo
 
-> **[PROMPT LAB DEMO VIDEO](https://www.loom.com/share/8275877d14334b2c8919a007205e4499)** (4 min)
+> **[PROMPT LAB DEMO VIDEO](https://www.loom.com/share/8275877d14334b2c8919a007205e4499)**
 >
 > A run through the tool covering why memory is re-sending rather than recalling,
 > how input tokens grow every turn while my typed messages stay the same length,
