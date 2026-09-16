@@ -48,16 +48,118 @@ because there was no history left to re-send.
 
 ## Table of contents
 
+- [Architecture](#architecture)
+- [Project layout](#project-layout)
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Usage](#usage)
-- [Architecture](#architecture)
-- [Project structure](#project-structure)
 - [Key concepts](#key-concepts)
 - [Pricing](#pricing)
-- [Error handling](#error-handling)
+- [Verification](#verification)
 - [Stretch goals](#stretch-goals)
 - [Documentation](#documentation)
+
+---
+
+## Architecture
+
+The model is **stateless**. It retains nothing between requests. So memory cannot
+live in the model, and it does not — it lives in a Python list inside `chat.py`
+that is re-sent in full on every single request. That one fact drives the whole
+design, and it is why the token count climbs every turn.
+
+```mermaid
+flowchart TD
+    A([User types a message]) --> B{Is it a command?}
+
+    B -->|"/reset /stats /persona<br/>/stream /help"| C["Handled locally<br/><i>no API call, no cost</i>"]
+    C --> A
+
+    B -->|normal message| D["Append to history<br/>role = user"]
+    D --> E["Build request:<br/>system_instruction<br/>+ <b>ENTIRE history</b>"]
+
+    E --> F([Gemini API])
+
+    F -->|failure| G["history.pop&#40;&#41; rolls back<br/>Explain by HTTP code:<br/>401 key · 404 model<br/>429 quota · 5xx theirs"]
+    G --> A
+
+    F -->|success| H["Reply text<br/>+ usage_metadata"]
+    H --> I["Append to history<br/>role = model"]
+    I --> J["cost_of&#40;input, output&#41;<br/>Update session totals"]
+    J --> K["Print reply, tokens<br/>and cost for this turn"]
+    K --> A
+
+    style E fill:#fff3cd,stroke:#856404,color:#000
+    style G fill:#f8d7da,stroke:#721c24,color:#000
+    style J fill:#d4edda,stroke:#155724,color:#000
+```
+
+### Components
+
+- **REPL loop** (`chat.py` main `while` block) — reads input, routes commands
+  before they can reach the network, and drives one turn per message.
+- **Memory store** (`history`, a `list[types.Content]`) — the bot's entire memory,
+  held in process. Written by `add_turn()` for both user and model turns.
+- **Request builder** (`send_once()` / `send_streaming()`, sharing `config()`) —
+  attaches the persona as `system_instruction` and the full history as `contents`.
+- **Cost accountant** (`cost_of()` plus the `session` dict) — reads
+  `usage_metadata` off each response and bills input and output at separate rates.
+- **Error translator** (`explain_api_error()`) — maps HTTP status codes onto
+  actionable human messages, paired with `history.pop()` to roll back failures.
+- **Persona library** (`PERSONAS` dict) — five system prompts, swappable at
+  runtime without touching history.
+
+### One full turn, end to end
+
+The loop reads a line and first checks whether it is a command; commands like
+`/reset` and `/stats` are served locally and never reach the API, so they cost
+nothing. Anything else is appended to `history` as a `user` turn, then the request
+builder sends the persona plus **the entire history** to Gemini. On success the
+reply is appended back as a `model` turn, `usage_metadata` is converted to a dollar
+figure, the session totals are updated, and the turn's tokens and cost are printed
+beneath the reply. On failure nothing is appended: `history.pop()` removes the user
+turn so the transcript cannot end on an unanswered message, the error is explained
+by status code, and the loop returns to the prompt. History only grows, which is
+why input tokens — and therefore cost — climb with every turn until `/reset`.
+
+### Two design decisions worth stating
+
+- **Streaming does not bypass cost tracking.** With `generate_content_stream()`,
+  `usage_metadata` arrives on the *final* chunk rather than all at once, so the
+  loop keeps the last one it receives. Streaming changes perceived speed, not
+  price.
+- **`/reset` clears history but keeps the cost totals.** Clearing memory does not
+  un-spend money, so zeroing the bill would be dishonest accounting.
+
+---
+
+## Project layout
+
+```text
+chat.py                  Main CLI application — memory, tokens, cost, personas,
+                         streaming, commands, error handling
+day1_hello.py            Learning script: baseline single-turn call, no memory
+day2_roles.py            Learning script: role/persona experiment, prints the
+                         full JSON request payload before sending
+
+requirements.txt         Pinned dependencies
+.env.example             Template for environment variables (tracked)
+.env                     Your real API key (git-ignored, never committed)
+.gitignore               Excludes .env, venv/, caches
+
+README.md                This file
+NOTES.md                 Day-by-day build log: every bug and its lesson
+docs/
+  learnings.md           Full conceptual write-up: tokens, context windows,
+                         roles, statelessness, provider comparison
+  screenshots/           Terminal captures + a guide for taking them
+.github/
+  workflows/ci.yml       CI: compiles all scripts and asserts the missing-key
+                         path exits 1, across Python 3.10 / 3.11 / 3.12
+```
+
+`chat.py` is the only file you need to run. The two `day*.py` scripts are kept
+deliberately: each isolates one concept and documents how the tool was built.
 
 ---
 
@@ -233,93 +335,6 @@ You: /stats
 
 ---
 
-## Architecture
-
-The model is **stateless**. It retains nothing between requests. So memory cannot
-live in the model, and it does not — it lives in a Python list in `chat.py` that
-gets re-sent in full on every single request. That one fact drives the whole
-design, and it is why the token count climbs every turn.
-
-```mermaid
-flowchart TD
-    A([User types a message]) --> B{Is it a command?}
-
-    B -->|"/reset /stats /persona<br/>/stream /help"| C["Handled locally<br/><i>no API call, no cost</i>"]
-    C --> A
-
-    B -->|normal message| D["Append to history<br/>role = user"]
-    D --> E["Build request:<br/>system_instruction<br/>+ <b>ENTIRE history</b>"]
-
-    E --> F([Gemini API])
-
-    F -->|failure| G["history.pop&#40;&#41; rolls back<br/>Explain by HTTP code:<br/>401 key · 404 model<br/>429 quota · 5xx theirs"]
-    G --> A
-
-    F -->|success| H["Reply text<br/>+ usage_metadata"]
-    H --> I["Append to history<br/>role = model"]
-    I --> J["cost_of&#40;input, output&#41;<br/>Update session totals"]
-    J --> K["Print reply, tokens<br/>and cost for this turn"]
-    K --> A
-
-    style E fill:#fff3cd,stroke:#856404,color:#000
-    style G fill:#f8d7da,stroke:#721c24,color:#000
-    style J fill:#d4edda,stroke:#155724,color:#000
-```
-
-### How the pieces interact
-
-`chat.py` is a single file holding four concerns that all meet in the main loop:
-
-| Concern | Implementation | Why it matters |
-| --- | --- | --- |
-| **Memory** | `history` list of `types.Content`, appended by `add_turn()` | The bot's entire memory. Both the user turn *and* the model turn must be appended, or the bot cannot remember its own answers. |
-| **Request building** | `send_once()` / `send_streaming()`, both using `config()` | The persona travels as `system_instruction`, a config field **outside** the message list — separate from history, which is why swapping persona leaves memory intact. |
-| **Cost** | `cost_of()` reading `usage_metadata` off the response | Input and output are billed at different rates, so they are calculated separately, then accumulated into `session`. |
-| **Resilience** | `explain_api_error()` plus `history.pop()` on failure | Rolling back the user turn stops a failed request leaving an unanswered message that would corrupt the next request's shape. |
-
-Two design details worth calling out:
-
-- **Streaming does not bypass cost tracking.** With
-  `generate_content_stream()`, `usage_metadata` arrives on the *final* chunk
-  rather than all at once, so the loop keeps the last one it receives. Streaming
-  changes perceived speed, not price.
-- **`/reset` clears history but keeps cost totals.** Clearing memory does not
-  un-spend money, so zeroing the bill would be dishonest accounting.
-
----
-
-## Project structure
-
-### Core application
-
-| File | Role |
-| --- | --- |
-| **`chat.py`** | **Main CLI application.** The deliverable. Conversation memory, token counting, cost tracking, persona library, streaming, commands, and error handling. |
-
-### Learning scripts
-
-Kept deliberately, because they document the build and each isolates one concept.
-Neither is needed to run the tool.
-
-| File | Role |
-| --- | --- |
-| `day1_hello.py` | **Baseline single-turn script.** The smallest possible working call: one message in, one reply out, no memory. Shows what a bare API request looks like. |
-| `day2_roles.py` | **Role and persona experiment.** Sends identical messages under three different system prompts and prints the full JSON request payload before sending, demonstrating that a chat request is just a system instruction plus a labelled message list. |
-
-### Configuration and documentation
-
-| File | Role |
-| --- | --- |
-| `requirements.txt` | Pinned dependencies for reproducible installs. |
-| `.env.example` | Template for environment variables. Copy to `.env`. |
-| `.env` | Your real API key. **Git-ignored, never committed.** |
-| `.gitignore` | Excludes `.env`, `venv/`, and caches. |
-| [`docs/learnings.md`](docs/learnings.md) | Full conceptual write-up: tokens, context windows, roles, statelessness. |
-| [`NOTES.md`](NOTES.md) | Day-by-day build log, including every bug and its lesson. |
-| `.github/workflows/ci.yml` | CI: compiles all scripts and verifies missing-key handling across three Python versions. |
-
----
-
 ## Key concepts
 
 Short version here. The full write-up, with all the measurements behind it, is in
@@ -385,9 +400,24 @@ cost levers: trim history to cut input, and ask for brevity to cut output.
 
 ---
 
-## Error handling
+## Verification
 
-Every failure below was deliberately triggered and observed, not merely coded for.
+Every failure below was deliberately triggered and the behaviour observed, not
+merely coded for and assumed.
+
+### Automated
+
+CI runs on every push across Python 3.10, 3.11 and 3.12. It compiles all three
+scripts, loads the CLI and parses its flags, then asserts that running with no key
+exits with code 1 and prints `No API key found`. It makes no API calls, so it needs
+no secrets and costs nothing.
+
+```bash
+python -m compileall -q chat.py day1_hello.py day2_roles.py
+python chat.py --help
+```
+
+### Manual failure injection
 
 | Failure | How it was forced | Behaviour |
 | --- | --- | --- |
