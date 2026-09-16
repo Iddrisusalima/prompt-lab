@@ -50,6 +50,18 @@ In a longer session the same effect is far more dramatic. With 44 messages of
 history the identical four-word question cost **822 input tokens**; immediately
 after `/reset` it cost **29**. A **28x drop**, for the same question.
 
+### Session totals
+
+`/stats` prints the running bill, split by direction:
+
+![Session totals showing 451 input tokens, 156 output tokens, and the note that 74% of tokens were input](docs/screenshots/session-stats.png)
+
+Look at the bottom line: **74% of those tokens were input.** Across six turns I
+typed only three short messages, yet three quarters of everything I paid for was
+history being re-sent. Note also that the 156 output tokens cost $0.000390 while
+the 451 input tokens cost only $0.000135 — output is billed at roughly 8x, so a
+quarter of the tokens accounted for nearly three quarters of the price.
+
 ---
 
 ## Table of contents
