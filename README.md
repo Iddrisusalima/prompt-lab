@@ -20,7 +20,12 @@ Built as Project 1 of an AI engineering mentorship.
 
 ## Demo
 
-> **Video walkthrough:** _add link here_
+> **[Video walkthrough: Understanding Stateless Models and Token Costs](https://www.loom.com/share/8275877d14334b2c8919a007205e4499)** (4 min)
+>
+> A run through the tool covering why memory is re-sending rather than recalling,
+> how input tokens grow every turn while my typed messages stay the same length,
+> why output is billed at roughly 8x input, and the error handling for bad keys
+> and network failures.
 
 ![Prompt Lab showing conversation memory, a /reset, and the token cost of both](docs/screenshots/memory-and-reset.png)
 

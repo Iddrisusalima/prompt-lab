@@ -778,12 +778,34 @@ time.
 
 # Day 7 (Sun Sep 13) — Review, Document & Submit
 
-- [ ] Remove leftover debug prints, add comments
-- [ ] Write `README.md` (description, setup, What I Learned, screenshot, stretch goals)
-- [ ] Push to a public GitHub repo named `prompt-lab`
-- [ ] Confirm the key never entered git history: `git log --all -- .env` returns nothing
-- [ ] Record a 2–3 minute demo video explaining token and cost tracking
+- [x] Remove leftover debug prints, add comments
+- [x] Write `README.md` (description, setup, What I Learned, screenshot, stretch goals)
+- [x] Push to a public GitHub repo named `prompt-lab`
+- [x] Confirm the key never entered git history: `git log --all -- .env` returns nothing
+- [x] Record a 2–3 minute demo video explaining token and cost tracking
 - [ ] Send mentor the repo link and video link
+
+## Submission links
+
+| | |
+| --- | --- |
+| Repo | https://github.com/Iddrisusalima/prompt-lab |
+| Demo video | https://www.loom.com/share/8275877d14334b2c8919a007205e4499 |
+
+## How I verified the key never leaked
+
+Three independent checks, because "I think it's fine" is not verification:
+
+1. `git log --all -- .env` returns nothing — the file was never committed on any
+   branch, so it is absent from history, not merely absent from `HEAD`.
+2. `git ls-files` lists `.env.example` but **not** `.env` — it was never tracked
+   in the first place, which is what made check 1 come back clean.
+3. `git check-ignore -v .env` reports `.gitignore:2:.env` — the ignore rule that
+   kept it untracked, quoted with the line number that matched.
+
+The order matters. Writing `.gitignore` *before* the key existed on disk is what
+made this work; a file already tracked keeps being tracked no matter what you add
+to `.gitignore` afterwards.
 
 ## Final self-check (must answer without looking anything up)
 
