@@ -22,27 +22,33 @@ Built as Project 1 of an AI engineering mentorship.
 
 > **Video walkthrough:** _add link here_
 
-The clearest 20 seconds in the project — the same question asked either side of a
-`/reset`:
+![Prompt Lab showing conversation memory, a /reset, and the token cost of both](docs/screenshots/memory-and-reset.png)
+
+The clearest 20 seconds in the project is visible in that screenshot — the same
+question asked either side of a `/reset`:
 
 ```text
 You: what is my name
-Bot: Your name is Salima!
-  [turn 22]  history: 44 msgs  |  tokens  in: 822   out: 6
+Bot: Your name is Salima! How can I help you with your code today?
+  [turn 2]  history: 4 msgs  |  tokens  in: 55  out: 16  total: 71
 
 You: /reset
-History cleared. Dropped 44 messages.
+History cleared. Dropped 4 messages. The bot no longer knows anything we discussed.
 
 You: what is my name
 Bot: I don't have access to your personal information, so I don't know your name
      yet! What should I call you?
-  [turn 23]  history: 2 msgs   |  tokens  in: 29    out: 27
+  [turn 3]  history: 2 msgs  |  tokens  in: 29  out: 27  total: 56
 ```
 
 First time it knew my name. Seconds later it did not. Nothing about the model
 changed — I deleted a list on my own laptop and the memory went with it, because
-that list **was** the memory. Input tokens fell from 822 to 29, a **28x drop**,
-because there was no history left to re-send.
+that list **was** the memory. Notice `tokens in` fell from 55 to 29, because there
+was no history left to re-send.
+
+In a longer session the same effect is far more dramatic. With 44 messages of
+history the identical four-word question cost **822 input tokens**; immediately
+after `/reset` it cost **29**. A **28x drop**, for the same question.
 
 ---
 
