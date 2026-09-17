@@ -32,7 +32,7 @@ jobs:
           pip install -r requirements.txt
 
       - name: Check every script compiles
-        run: python -m compileall -q chat.py day1_hello.py day2_roles.py
+        run: python -m compileall -q chat.py single_turn.py inspect_request.py
 
       - name: Check the CLI loads and its flags parse
         # --help exercises argparse and every module-level import without

@@ -8,7 +8,7 @@ Goal: understand the anatomy of a chat request.
   4. Run the SAME messages under 3 different system prompts and compare.
 
 Run it with:
-    .\venv\Scripts\python.exe day2_roles.py
+    .\venv\Scripts\python.exe inspect_request.py
 """
 
 import json

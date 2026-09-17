@@ -14,7 +14,39 @@ working chatbot but making the invisible parts visible — you can watch the tok
 count climb with every message and see, in real numbers, why memory is the thing
 you are paying for.
 
-Built as Project 1 of an AI engineering mentorship.
+---
+
+## Table of contents
+
+- [Demo](#demo)
+  - [Session totals](#session-totals)
+- [Architecture](#architecture)
+  - [Components](#components)
+  - [One full turn, end to end](#one-full-turn-end-to-end)
+  - [Two design decisions worth stating](#two-design-decisions-worth-stating)
+- [Project layout](#project-layout)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+  - [1. Clone the repository](#1-clone-the-repository)
+  - [2. Create a virtual environment](#2-create-a-virtual-environment)
+  - [3. Install dependencies](#3-install-dependencies)
+  - [4. Add your API key](#4-add-your-api-key)
+  - [5. Run it](#5-run-it)
+- [Usage](#usage)
+  - [Commands available while chatting](#commands-available-while-chatting)
+  - [Command line flags](#command-line-flags)
+  - [Example session](#example-session)
+- [Key concepts](#key-concepts)
+- [Pricing](#pricing)
+  - [Where the money actually goes](#where-the-money-actually-goes)
+- [Verification](#verification)
+  - [Automated](#automated)
+  - [Manual failure injection](#manual-failure-injection)
+- [Stretch goals](#stretch-goals)
+  - [What the persona library revealed](#what-the-persona-library-revealed)
+  - [Extras beyond the brief](#extras-beyond-the-brief)
+- [Documentation](#documentation)
+- [License](#license)
 
 ---
 
@@ -66,21 +98,6 @@ typed only three short messages, yet three quarters of everything I paid for was
 history being re-sent. Note also that the 156 output tokens cost $0.000390 while
 the 451 input tokens cost only $0.000135 — output is billed at roughly 8x, so a
 quarter of the tokens accounted for nearly three quarters of the price.
-
----
-
-## Table of contents
-
-- [Architecture](#architecture)
-- [Project layout](#project-layout)
-- [Prerequisites](#prerequisites)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Key concepts](#key-concepts)
-- [Pricing](#pricing)
-- [Verification](#verification)
-- [Stretch goals](#stretch-goals)
-- [Documentation](#documentation)
 
 ---
 
@@ -161,9 +178,9 @@ why input tokens — and therefore cost — climb with every turn until `/reset`
 ```text
 chat.py                  Main CLI application — memory, tokens, cost, personas,
                          streaming, commands, error handling
-day1_hello.py            Learning script: baseline single-turn call, no memory
-day2_roles.py            Learning script: role/persona experiment, prints the
-                         full JSON request payload before sending
+single_turn.py           Learning script: baseline single-turn call, no memory
+inspect_request.py       Learning script: role and system-prompt experiment,
+                         prints the full JSON request payload before sending
 
 requirements.txt         Pinned dependencies
 .env.example             Template for environment variables (tracked)
@@ -175,14 +192,18 @@ NOTES.md                 Day-by-day build log: every bug and its lesson
 docs/
   learnings.md           Full conceptual write-up: tokens, context windows,
                          roles, statelessness, provider comparison
+  architecture.drawio    Editable source for the architecture diagram
   screenshots/           Terminal captures + a guide for taking them
 .github/
   workflows/ci.yml       CI: compiles all scripts and asserts the missing-key
                          path exits 1, across Python 3.10 / 3.11 / 3.12
 ```
 
-`chat.py` is the only file you need to run. The two `day*.py` scripts are kept
+`chat.py` is the only file you need to run. The two learning scripts are kept
 deliberately: each isolates one concept and documents how the tool was built.
+`single_turn.py` shows a bare call with no memory at all, and
+`inspect_request.py` prints the exact JSON payload so you can see the roles and
+the system instruction on the wire.
 
 ---
 
@@ -436,7 +457,7 @@ exits with code 1 and prints `No API key found`. It makes no API calls, so it ne
 no secrets and costs nothing.
 
 ```bash
-python -m compileall -q chat.py day1_hello.py day2_roles.py
+python -m compileall -q chat.py single_turn.py inspect_request.py
 python chat.py --help
 ```
 

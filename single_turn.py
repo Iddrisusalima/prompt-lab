@@ -5,7 +5,7 @@ Goal: send ONE message to the model, print ONE reply.
 No memory, no cost tracking, no loop. Those come on Days 3-5.
 
 Run it with:
-    .\venv\Scripts\python.exe day1_hello.py
+    .\venv\Scripts\python.exe single_turn.py
 """
 
 import logging

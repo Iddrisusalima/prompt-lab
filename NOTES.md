@@ -29,7 +29,7 @@ your first call.
 | Install Python | Already had 3.12.5 (brief needs 3.10+) |
 | Free API key, not committed | Gemini key from AI Studio, verified invisible to git |
 | Store key in `.env`, load with dotenv | `load_dotenv()` at the top of the script |
-| Smallest script: one message, one reply | `day1_hello.py` |
+| Smallest script: one message, one reply | `single_turn.py` |
 | Read what "inference" means | Written up below in my own words |
 
 ## What I built
@@ -40,7 +40,7 @@ prompt-lab/
 ├── .env              # my real key — git-ignored, never leaves my machine
 ├── .env.example      # safe template with no real values, this one IS committed
 ├── requirements.txt  # pinned exact versions so the project is reproducible
-├── day1_hello.py     # one message in, one reply out
+├── single_turn.py    # one message in, one reply out
 ├── NOTES.md          # this file
 └── venv/             # virtual environment
 ```
@@ -49,7 +49,7 @@ prompt-lab/
 
 ```powershell
 cd C:\Users\hp\Desktop\prompt-lab
-.\venv\Scripts\python.exe day1_hello.py
+.\venv\Scripts\python.exe single_turn.py
 ```
 
 ## Terminal output (proof it works)
@@ -133,7 +133,7 @@ and the model emits the single most likely next token. That new token gets
 appended to the input, and the whole process repeats to produce the token after
 it. This continues until the model produces a stop signal.
 
-So when I run `day1_hello.py`, the chain is: my text travels over HTTPS to
+So when I run `single_turn.py`, the chain is: my text travels over HTTPS to
 Google's servers → it gets tokenized → it passes through the frozen network once
 per output token → the assembled text comes back, with a token receipt attached.
 
@@ -153,7 +153,7 @@ costs more than the one before it.
 
 # Day 2 (Tue Sep 8) — Roles & System Prompts
 
-**Status: complete.** Script: `day2_roles.py`
+**Status: complete.** Script: `inspect_request.py`
 
 - [x] Add a system prompt to give the bot a personality
 - [x] Print the full request payload before sending it
