@@ -173,7 +173,7 @@ requirements.txt         Pinned dependencies
 .gitignore               Excludes .env, venv/, caches
 
 README.md                This file
-NOTES.md                 Day-by-day build log: every bug and its lesson
+BUILD-LOG.md             Day-by-day build log: every bug and its lesson
 docs/
   learnings.md           Full conceptual write-up: tokens, context windows,
                          roles, statelessness, provider comparison
@@ -529,7 +529,7 @@ proves the two are independent channels.
 | Document | Contents |
 | --- | --- |
 | [`docs/learnings.md`](docs/learnings.md) | Full conceptual write-up: tokens, context windows, roles, training vs inference, statelessness, provider comparison, and the self-check answers. |
-| [`NOTES.md`](NOTES.md) | Day-by-day build log. Every bug I hit, why it happened, and what it taught me. |
+| [`BUILD-LOG.md`](BUILD-LOG.md) | Day-by-day build log. Every bug I hit, why it happened, and what it taught me. |
 
 ---
 

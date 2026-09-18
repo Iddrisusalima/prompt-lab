@@ -5,7 +5,7 @@ own words, and every number quoted is from my own terminal rather than from
 documentation.
 
 For the day-by-day build log, including every bug I hit, see
-[`NOTES.md`](../NOTES.md).
+[`BUILD-LOG.md`](../BUILD-LOG.md).
 
 ## Contents
 

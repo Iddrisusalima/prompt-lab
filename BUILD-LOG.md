@@ -41,7 +41,7 @@ prompt-lab/
 ├── .env.example      # safe template with no real values, this one IS committed
 ├── requirements.txt  # pinned exact versions so the project is reproducible
 ├── single_turn.py    # one message in, one reply out
-├── NOTES.md          # this file
+├── BUILD-LOG.md      # this file
 └── venv/             # virtual environment
 ```
 
