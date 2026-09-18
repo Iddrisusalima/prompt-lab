@@ -192,7 +192,6 @@ NOTES.md                 Day-by-day build log: every bug and its lesson
 docs/
   learnings.md           Full conceptual write-up: tokens, context windows,
                          roles, statelessness, provider comparison
-  architecture.drawio    Editable source for the architecture diagram
   screenshots/           Terminal captures + a guide for taking them
 .github/
   workflows/ci.yml       CI: compiles all scripts and asserts the missing-key
