@@ -790,7 +790,7 @@ time.
 | | |
 | --- | --- |
 | Repo | https://github.com/Iddrisusalima/prompt-lab |
-| Demo video | https://www.loom.com/share/8275877d14334b2c8919a007205e4499 |
+| Demo video | https://www.loom.com/share/95d80e1c0e304b8c943ec364485cb061 |
 
 ## How I verified the key never leaked
 
