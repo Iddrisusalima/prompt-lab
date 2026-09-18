@@ -1,0 +1,109 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 1060" width="1040" height="1060" font-family="Helvetica, Arial, sans-serif">
+  <title>Prompt Lab architecture: one turn, end to end</title>
+  <desc>A flowchart of one conversation turn. User input is checked for commands, which are handled locally with no API call. Normal messages are appended to history, then the full history plus the system instruction is sent to the Gemini API. Failures roll the history back. Successes append the reply, compute cost from usage metadata, print the totals, and loop back with a longer history.</desc>
+
+  <defs>
+    <marker id="arrow-grey" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#666666" />
+    </marker>
+    <marker id="arrow-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#b85450" />
+    </marker>
+    <marker id="arrow-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#82b366" />
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="1040" height="1060" fill="#ffffff" />
+
+  <text x="60" y="44" font-size="21" font-weight="bold" fill="#1a1a1a">Prompt Lab - one turn, end to end</text>
+  <text x="60" y="70" font-size="12.5" fill="#666666">Memory is not recall. The whole history is re-sent on every request, which is why cost climbs each turn.</text>
+
+  <!-- edges drawn first so boxes sit on top -->
+  <path d="M 430 160 V 200" stroke="#666666" stroke-width="1.6" fill="none" marker-end="url(#arrow-grey)" />
+  <path d="M 530 245 H 700" stroke="#666666" stroke-width="1.6" fill="none" marker-end="url(#arrow-grey)" />
+  <path d="M 815 215 V 125 H 540" stroke="#666666" stroke-width="1.6" fill="none" stroke-dasharray="6 4" marker-end="url(#arrow-grey)" />
+  <path d="M 430 290 V 330" stroke="#666666" stroke-width="1.6" fill="none" marker-end="url(#arrow-grey)" />
+  <path d="M 430 390 V 430" stroke="#666666" stroke-width="1.6" fill="none" marker-end="url(#arrow-grey)" />
+  <path d="M 430 510 V 550" stroke="#666666" stroke-width="1.6" fill="none" marker-end="url(#arrow-grey)" />
+  <path d="M 540 575 H 620 V 685 H 700" stroke="#b85450" stroke-width="1.6" fill="none" marker-end="url(#arrow-red)" />
+  <path d="M 930 685 H 1000 V 90 H 470 V 110" stroke="#b85450" stroke-width="1.6" fill="none" stroke-dasharray="6 4" marker-end="url(#arrow-red)" />
+  <path d="M 430 600 V 655" stroke="#82b366" stroke-width="1.6" fill="none" marker-end="url(#arrow-green)" />
+  <path d="M 430 715 V 755" stroke="#666666" stroke-width="1.6" fill="none" marker-end="url(#arrow-grey)" />
+  <path d="M 430 815 V 855" stroke="#666666" stroke-width="1.6" fill="none" marker-end="url(#arrow-grey)" />
+  <path d="M 430 915 V 955" stroke="#666666" stroke-width="1.6" fill="none" marker-end="url(#arrow-grey)" />
+  <path d="M 320 985 H 95 V 135 H 320" stroke="#666666" stroke-width="1.6" fill="none" stroke-dasharray="6 4" marker-end="url(#arrow-grey)" />
+
+  <!-- edge labels -->
+  <text x="615" y="226" font-size="10.5" fill="#444444" text-anchor="middle">/reset  /stats  /persona</text>
+  <text x="615" y="239" font-size="10.5" fill="#444444" text-anchor="middle">/stream  /help</text>
+  <text x="438" y="314" font-size="10.5" fill="#444444">normal message</text>
+  <text x="548" y="568" font-size="10.5" fill="#b85450">failure</text>
+  <text x="438" y="632" font-size="10.5" fill="#82b366">success</text>
+  <text x="107" y="300" font-size="10.5" fill="#444444">history is now longer, so</text>
+  <text x="107" y="314" font-size="10.5" fill="#444444">the next turn costs more</text>
+
+  <!-- A: user input -->
+  <rect x="320" y="110" width="220" height="50" rx="16" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.6" />
+  <text x="430" y="140" font-size="13" fill="#1a1a1a" text-anchor="middle">User types a message</text>
+
+  <!-- B: decision -->
+  <polygon points="430,200 530,245 430,290 330,245" fill="#ffffff" stroke="#666666" stroke-width="1.6" />
+  <text x="430" y="249" font-size="12.5" fill="#1a1a1a" text-anchor="middle">Is it a command?</text>
+
+  <!-- C: local command -->
+  <rect x="700" y="215" width="230" height="60" fill="#f5f5f5" stroke="#666666" stroke-width="1.6" />
+  <text x="815" y="241" font-size="12" font-weight="bold" fill="#1a1a1a" text-anchor="middle">Handled locally</text>
+  <text x="815" y="258" font-size="11.5" font-style="italic" fill="#555555" text-anchor="middle">no API call, no cost</text>
+
+  <!-- D: append user turn -->
+  <rect x="320" y="330" width="220" height="60" fill="#ffffff" stroke="#666666" stroke-width="1.6" />
+  <text x="430" y="356" font-size="12" fill="#1a1a1a" text-anchor="middle">Append to history</text>
+  <text x="430" y="373" font-size="11.5" font-family="Consolas, monospace" fill="#333333" text-anchor="middle">role = user</text>
+
+  <!-- E: build request, the expensive step -->
+  <rect x="320" y="430" width="220" height="80" fill="#fff2cc" stroke="#d6b656" stroke-width="1.8" />
+  <text x="430" y="456" font-size="12" font-weight="bold" fill="#1a1a1a" text-anchor="middle">Build request</text>
+  <text x="430" y="473" font-size="11.5" font-family="Consolas, monospace" fill="#333333" text-anchor="middle">system_instruction</text>
+  <text x="430" y="491" font-size="12" font-weight="bold" fill="#1a1a1a" text-anchor="middle">+ ENTIRE history</text>
+
+  <text x="130" y="456" font-size="11" fill="#856404">This is the whole trick.</text>
+  <text x="130" y="470" font-size="11" fill="#856404">The model is stateless,</text>
+  <text x="130" y="484" font-size="11" fill="#856404">so the full transcript goes</text>
+  <text x="130" y="498" font-size="11" fill="#856404">on every single request.</text>
+
+  <!-- F: the API -->
+  <rect x="320" y="550" width="220" height="50" rx="16" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.6" />
+  <text x="430" y="580" font-size="13" fill="#1a1a1a" text-anchor="middle">Gemini API</text>
+
+  <!-- G: failure path -->
+  <rect x="700" y="630" width="230" height="110" fill="#f8cecc" stroke="#b85450" stroke-width="1.6" />
+  <text x="815" y="656" font-size="11.5" fill="#1a1a1a" text-anchor="middle"><tspan font-family="Consolas, monospace">history.pop()</tspan> rolls back</text>
+  <text x="815" y="682" font-size="11.5" fill="#1a1a1a" text-anchor="middle">Explain by HTTP code:</text>
+  <text x="815" y="700" font-size="11.5" fill="#333333" text-anchor="middle">401 key / 404 model</text>
+  <text x="815" y="718" font-size="11.5" fill="#333333" text-anchor="middle">429 quota / 5xx theirs</text>
+
+  <text x="700" y="766" font-size="11" fill="#b85450">Nothing is added to history,</text>
+  <text x="700" y="780" font-size="11" fill="#b85450">so a failed request cannot</text>
+  <text x="700" y="794" font-size="11" fill="#b85450">corrupt the next one.</text>
+
+  <!-- H: reply -->
+  <rect x="320" y="655" width="220" height="60" fill="#ffffff" stroke="#666666" stroke-width="1.6" />
+  <text x="430" y="681" font-size="12" fill="#1a1a1a" text-anchor="middle">Reply text</text>
+  <text x="430" y="698" font-size="11.5" fill="#333333" text-anchor="middle">+ <tspan font-family="Consolas, monospace">usage_metadata</tspan></text>
+
+  <!-- I: append model turn -->
+  <rect x="320" y="755" width="220" height="60" fill="#ffffff" stroke="#666666" stroke-width="1.6" />
+  <text x="430" y="781" font-size="12" fill="#1a1a1a" text-anchor="middle">Append to history</text>
+  <text x="430" y="798" font-size="11.5" font-family="Consolas, monospace" fill="#333333" text-anchor="middle">role = model</text>
+
+  <!-- J: accounting -->
+  <rect x="320" y="855" width="220" height="60" fill="#d5e8d4" stroke="#82b366" stroke-width="1.6" />
+  <text x="430" y="881" font-size="11.5" font-family="Consolas, monospace" fill="#1a1a1a" text-anchor="middle">cost_of(input, output)</text>
+  <text x="430" y="898" font-size="12" fill="#1a1a1a" text-anchor="middle">Update session totals</text>
+
+  <!-- K: report -->
+  <rect x="320" y="955" width="220" height="60" fill="#ffffff" stroke="#666666" stroke-width="1.6" />
+  <text x="430" y="981" font-size="12" fill="#1a1a1a" text-anchor="middle">Print reply, tokens</text>
+  <text x="430" y="998" font-size="12" fill="#1a1a1a" text-anchor="middle">and cost for this turn</text>
+</svg>

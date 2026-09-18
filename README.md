@@ -108,31 +108,16 @@ live in the model, and it does not — it lives in a Python list inside `chat.py
 that is re-sent in full on every single request. That one fact drives the whole
 design, and it is why the token count climbs every turn.
 
-```mermaid
-flowchart TD
-    A([User types a message]) --> B{Is it a command?}
+<p align="center">
+  <img src="docs/architecture.svg" alt="Flowchart of one conversation turn. User input is checked for commands, which are handled locally with no API call. Normal messages are appended to history, then the system instruction plus the entire history is sent to the Gemini API. Failures roll the history back and are explained by HTTP status code. Successes append the reply, compute cost from usage metadata, print the totals, and loop back with a longer history." width="900">
+</p>
 
-    B -->|"/reset /stats /persona<br/>/stream /help"| C["Handled locally<br/><i>no API call, no cost</i>"]
-    C --> A
-
-    B -->|normal message| D["Append to history<br/>role = user"]
-    D --> E["Build request:<br/>system_instruction<br/>+ <b>ENTIRE history</b>"]
-
-    E --> F([Gemini API])
-
-    F -->|failure| G["history.pop&#40;&#41; rolls back<br/>Explain by HTTP code:<br/>401 key · 404 model<br/>429 quota · 5xx theirs"]
-    G --> A
-
-    F -->|success| H["Reply text<br/>+ usage_metadata"]
-    H --> I["Append to history<br/>role = model"]
-    I --> J["cost_of&#40;input, output&#41;<br/>Update session totals"]
-    J --> K["Print reply, tokens<br/>and cost for this turn"]
-    K --> A
-
-    style E fill:#fff3cd,stroke:#856404,color:#000
-    style G fill:#f8d7da,stroke:#721c24,color:#000
-    style J fill:#d4edda,stroke:#155724,color:#000
-```
+Three things in that diagram carry the whole design. The yellow box is where the
+cost is created, because the request contains the **entire** history and not just
+the latest message. The red path shows a failed request being rolled back out of
+history, so it cannot corrupt the next one. And the dashed arrow returning from
+the bottom to the top is the reason this project exists: every completed turn
+leaves history longer than it found it, so the next turn costs more.
 
 ### Components
 
@@ -192,6 +177,8 @@ NOTES.md                 Day-by-day build log: every bug and its lesson
 docs/
   learnings.md           Full conceptual write-up: tokens, context windows,
                          roles, statelessness, provider comparison
+  architecture.svg       The architecture diagram shown above
+  architecture.drawio    Editable draw.io source for that diagram
   screenshots/           Terminal captures + a guide for taking them
 .github/
   workflows/ci.yml       CI: compiles all scripts and asserts the missing-key
