@@ -535,4 +535,4 @@ proves the two are independent channels.
 
 ## License
 
-[MIT](LICENSE)
+Released under the [MIT License](LICENSE)
